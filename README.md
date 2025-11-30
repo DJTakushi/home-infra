@@ -1,5 +1,11 @@
 # home_server_setup
 
+# immich
+- set host environmetn varaible to v2.3.1 to avoid breaking
+```
+export IMMICH_VERSION=v2.3.1
+```
+
 # pihole
 ubuntu consdierations regarding port 53: https://docs.pi-hole.net/docker/tips-and-tricks/
 
