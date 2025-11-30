@@ -8,3 +8,28 @@ sudo sh -c 'mkdir -p /etc/systemd/resolved.conf.d && printf "[Resolve]\nDNSStubL
 sudo sh -c 'rm -f /etc/resolv.conf && ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf'
 systemctl restart systemd-resolved
 ```
+
+check who is using port 53
+```
+sudo lsof -i :53
+```
+
+check ubuntu
+```
+ping -c3 www.ubuntu.com
+```
+
+recreate pihole with recreation
+```
+docker compose up pihole --force-recreate -d
+```
+
+lookup
+```
+nslookup ubuntu.com
+```
+
+check resolving settings,  including current  DSNS server
+```
+resolvectl status
+```
