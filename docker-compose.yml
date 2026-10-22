@@ -99,5 +99,33 @@ services:
       - SYS_NICE
     restart: always
 
+  forgejo:
+    # Self-hosted Git with pull requests, issues and a GitHub-like web UI - a backup remote for
+    # work repos that have no hosted home yet. See README "forgejo". Pi-hole holds host ports
+    # 80/443 and Grafana 3000, so the web UI is on 3300 and Git-over-SSH on 2222.
+    # 15 is the long-term-support line; move to the next LTS deliberately, not via :latest.
+    container_name: forgejo
+    image: codeberg.org/forgejo/forgejo:15
+    environment:
+      USER_UID: ${FORGEJO_UID:-1000}
+      USER_GID: ${FORGEJO_GID:-1000}
+      # How clone URLs are written - set FORGEJO_HOST in .env to the server's LAN name or IP.
+      FORGEJO__server__DOMAIN: ${FORGEJO_HOST:-localhost}
+      FORGEJO__server__SSH_DOMAIN: ${FORGEJO_HOST:-localhost}
+      FORGEJO__server__ROOT_URL: http://${FORGEJO_HOST:-localhost}:3300/
+      FORGEJO__server__SSH_PORT: 2222
+      FORGEJO__database__DB_TYPE: sqlite3
+      # Accounts are created by the admin (the first-run page creates the admin), not self-signup.
+      FORGEJO__service__DISABLE_REGISTRATION: "true"
+    volumes:
+      # Repos, the SQLite database and config. Back this folder up (see README).
+      - ${FORGEJO_DATA_LOCATION:-./forgejo}:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3300:3000"
+      - "2222:22"
+    restart: always
+
 volumes:
   model-cache:
