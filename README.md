@@ -41,15 +41,15 @@ resolvectl status
 ```
 # forgejo
 Self-hosted Git server (GitHub-like: pull requests, issues, web UI) - a backup remote for work
-repos that don't have a hosted home yet. Web UI on port **3000**, Git over SSH on **2222**
-(Pi-hole already has 80/443). Data, repos and the SQLite database live in `FORGEJO_DATA_LOCATION`
+repos that don't have a hosted home yet. Web UI on port **3300**, Git over SSH on **2222**
+(Pi-hole has 80/443, Grafana 3000). Data, repos and the SQLite database live in `FORGEJO_DATA_LOCATION`
 (default `./forgejo`).
 
 first start - set `FORGEJO_HOST` in `.env` to the server's LAN name or IP first, so clone URLs are right
 ```
 mkdir -p forgejo && docker compose up forgejo -d
 ```
-then open `http://<server>:3000`, keep SQLite, and create the **administrator account** in
+then open `http://<server>:3300`, keep SQLite, and create the **administrator account** in
 "Administrator account settings" at the bottom of the install page (self-registration is off).
 
 add your workstation's SSH key: avatar -> Settings -> SSH / GPG keys -> Add key (`cat ~/.ssh/id_ed25519.pub`)
@@ -62,7 +62,7 @@ git push home --all && git push home --tags
 
 pull requests from the command line - the `tea` CLI (https://gitea.com/gitea/tea) works with Forgejo
 ```
-tea login add --name home --url http://<server>:3000 --token <token from Settings -> Applications>
+tea login add --name home --url http://<server>:3300 --token <token from Settings -> Applications>
 tea pr create --login home --base main --head feat/x --title "..."
 ```
 
