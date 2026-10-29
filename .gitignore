@@ -1,3 +1,4 @@
 .env
 etc-pihole/
 forgejo/
+tailscale/

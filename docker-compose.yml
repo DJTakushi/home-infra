@@ -127,5 +127,31 @@ services:
       - "2222:22"
     restart: always
 
+  tailscale:
+    # Private access to every service here from outside the home network, with no router port
+    # forwards. Host networking makes this node the server itself, so each port published above
+    # (Immich 2283, Forgejo 3300/2222, Pi-hole) is reachable over the tailnet. See README "tailscale".
+    container_name: tailscale
+    image: tailscale/tailscale:stable
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      # One-time auth key from the admin console (Settings -> Keys), set in .env. Only used to
+      # join; after that the login lives in the state folder.
+      TS_AUTHKEY: ${TS_AUTHKEY:-}
+      TS_AUTH_ONCE: "true"
+      # Name on the tailnet (MagicDNS), so http://ts:3300 works away from home.
+      TS_HOSTNAME: ${TS_HOSTNAME:-ts}
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_USERSPACE: "false"
+    volumes:
+      # Node identity and login. Keep it - deleting it makes the server join as a new machine.
+      - ${TAILSCALE_DATA_LOCATION:-./tailscale}:/var/lib/tailscale
+    restart: always
+
 volumes:
   model-cache:
