@@ -78,3 +78,40 @@ upgrade - bump the image tag in `docker-compose.yml` one major LTS at a time, th
 ```
 docker compose pull forgejo && docker compose up forgejo -d
 ```
+
+# tailscale
+Reach every service here from outside the home network over a private Tailscale network
+(tailnet), with **no router port forwards**. The container uses host networking, so it acts like
+Tailscale installed on the server: Immich (2283), Forgejo (3300 web, 2222 SSH) and Pi-hole are
+reachable at the same ports from any device signed in to the tailnet.
+
+first start
+1. create a Tailscale account at https://login.tailscale.com (use a login with 2FA - it now guards the network)
+2. admin console -> Settings -> Keys -> **Generate auth key** (one-off, not reusable) and put it in `.env` as `TS_AUTHKEY`
+3. start it
+```
+mkdir -p tailscale && docker compose up tailscale -d
+docker exec tailscale tailscale status
+```
+4. admin console -> Machines -> `ts` -> **...** -> **Disable key expiry**, or the server drops off the tailnet after 180 days
+5. install the Tailscale app on your phone/laptop, sign in to the same account, then test with Wi-Fi off: `http://ts:3300`
+
+The auth key is only used to join - the login is stored in `TAILSCALE_DATA_LOCATION` (default
+`./tailscale`). Keep that folder; deleting it makes the server join as a new machine.
+
+`ts` on the tailnet is a MagicDNS name. On a computer that pins `ts` to the LAN IP in
+`/etc/hosts`, that entry wins and fails away from home - remove it.
+
+optional: ad-blocking away from home - admin console -> DNS -> add a nameserver with the server's
+Tailscale IP (`docker exec tailscale tailscale ip -4`) and turn on **Override local DNS**.
+Pi-hole already answers on all interfaces (`FTLCONF_dns_listeningMode: all`).
+
+Remove any router port forwards to this server once the tailnet works - nothing needs to be open.
+
+caveat: remote access now depends on Docker. `restart: always` covers crashes and reboots, but if
+the Docker daemon itself is broken you need to be on the LAN to fix it.
+
+upgrade
+```
+docker compose pull tailscale && docker compose up tailscale -d
+```
