@@ -7,7 +7,7 @@ settings for every service. Relative paths in it (e.g. `DB_DATA_LOCATION=./postg
 this folder, so move those folders with it.
 
 # immich
-The version is pinned with `IMMICH_VERSION` in `.env` (v2.3.1) to avoid breaking upgrades. Raise it
+The version is pinned with `IMMICH_VERSION` in `.env` (v3.3.5) to avoid breaking upgrades. Raise it
 deliberately after reading the release notes, then `docker compose pull && docker compose up -d`.
 
 # pihole
