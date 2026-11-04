@@ -21,7 +21,7 @@ resolve from this folder.
 | `redis` (`immich_redis`) | Immich's job queue (Valkey) | none | none |
 | `pihole` | DNS ad-blocking for the network | 53 tcp/udp (DNS), 80 and 443 (web UI) | `./etc-pihole` → `/etc/pihole` |
 | `forgejo` | Self-hosted Git | 3300 (web), 2222 (Git over SSH) | `./forgejo` → `/data` |
-| `tailscale` | Remote access over the tailnet | none of its own; host networking makes every port above reachable as `ts` | `./tailscale` → `/var/lib/tailscale` |
+| `tailscale` | Remote access over the tailnet, and HTTPS for Homepage, Immich and Forgejo | none of its own; host networking makes every port above reachable as `ts`. HTTPS on the tailnet: 443 (Homepage), 2443 (Immich), 3443 (Forgejo) | `./tailscale` → `/var/lib/tailscale`, `./tailscale-serve` → `/config` (tracked config) |
 | `homepage` | Front page: a card per service with live status, and links to these docs | 3001 (web) | `./homepage` → `/app/config` (tracked config) |
 
 # immich
@@ -133,6 +133,38 @@ Remove any router port forwards to this server once the tailnet works - nothing 
 caveat: remote access now depends on Docker. `restart: always` covers crashes and reboots, but if
 the Docker daemon itself is broken you need to be on the LAN to fix it.
 
+HTTPS - Tailscale Serve gives Homepage, Immich and Forgejo real certificates at
+`https://ts.<tailnet>.ts.net`, trusted by phones and browsers with no setup. It's tailnet only: the
+Tailscale app must be on, even at home. The plain `http://` ports keep working on the LAN.
+
+| Service | HTTPS address | Proxies to |
+|---|---|---|
+| Homepage | `https://ts.<tailnet>.ts.net` | `http://127.0.0.1:3001` |
+| Immich | `https://ts.<tailnet>.ts.net:2443` | `http://127.0.0.1:2283` |
+| Forgejo | `https://ts.<tailnet>.ts.net:3443` | `http://127.0.0.1:3300` |
+
+The mapping is `tailscale-serve/serve.json` (`TS_SERVE_CONFIG`); the container fills in
+`${TS_CERT_DOMAIN}` and reapplies the file whenever it changes, so edit, commit, pull - no restart.
+Tailscale answers these ports itself before traffic reaches Docker, so 443 here doesn't clash with
+Pi-hole's 443; over the tailnet, Pi-hole's own HTTPS page is hidden behind Homepage (use `http://ts/admin`).
+
+first time
+1. admin console -> DNS: **MagicDNS** on, then **HTTPS Certificates** -> Enable. Your tailnet name
+   (the `<tailnet>.ts.net` part) is shown on the same page.
+2. add `ts.<tailnet>.ts.net` to `HOMEPAGE_ALLOWED_HOSTS` in `.env`, then
+```
+docker compose up tailscale homepage -d
+docker exec tailscale tailscale serve status
+```
+3. open `https://ts.<tailnet>.ts.net` on a device with Tailscale on. The first request takes a few
+   seconds while the certificate is issued.
+
+caveats
+- certificates are published in public Certificate Transparency logs, so the names `ts` and your
+  tailnet become public. Nothing becomes reachable because of that.
+- Forgejo's own links and clone URLs still use `FORGEJO_HOST` over plain http; the HTTPS address is
+  for browsing.
+
 upgrade
 ```
 docker compose pull tailscale && docker compose up tailscale -d
@@ -155,7 +187,8 @@ first start - the Immich key goes in `.env`, then `docker compose up homepage -d
 
 Without the key the Immich card shows "API Error"; the rest of the page still works.
 
-If the page says the host isn't allowed, add the exact `host:port` you opened it at to
+Over HTTPS it's at `https://ts.<tailnet>.ts.net` (see tailscale "HTTPS"). If the page says the host
+isn't allowed, add the exact host (and port, if the address has one) you opened it at to
 `HOMEPAGE_ALLOWED_HOSTS` in `.env` (default `ts:3001,192.168.130.52:3001`). There's no login: anyone on
 the LAN or tailnet can see it, which is fine since it only shows counts and links. Homepage can add a
 password (`HOMEPAGE_AUTH_ENABLED`) if that changes.

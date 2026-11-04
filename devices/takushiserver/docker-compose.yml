@@ -153,9 +153,14 @@ services:
       TS_HOSTNAME: ${TS_HOSTNAME:-ts}
       TS_STATE_DIR: /var/lib/tailscale
       TS_USERSPACE: "false"
+      # HTTPS with a real certificate at https://ts.<tailnet>.ts.net for the services listed in
+      # tailscale-serve/serve.json (tailnet only). Reapplied whenever the file changes.
+      TS_SERVE_CONFIG: /config/serve.json
     volumes:
       # Node identity and login. Keep it - deleting it makes the server join as a new machine.
       - ${TAILSCALE_DATA_LOCATION:-./tailscale}:/var/lib/tailscale
+      # A folder, not the file: a single-file mount wouldn't see changes from git pull.
+      - ./tailscale-serve:/config:ro
     restart: always
 
   homepage:
