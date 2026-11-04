@@ -1,7 +1,9 @@
 # takushiserver
 
 Home server (`ts` on the tailnet, 192.168.130.52). Run Compose from this folder; untracked
-data folders (`etc-pihole/`, `forgejo/`, `tailscale/`) and `.env` files live next to the compose file.
+data folders (`etc-pihole/`, `forgejo/`, `tailscale/`, and Immich's database `postgres/`) and `.env`
+files live next to the compose file. Relative paths in `.env` and `immich/.env` (e.g.
+`DB_DATA_LOCATION=./postgres`) resolve from this folder, so move those folders with it.
 
 # immich
 - set host environmetn varaible to v2.3.1 to avoid breaking
