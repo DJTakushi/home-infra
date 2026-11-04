@@ -8,36 +8,22 @@ this folder, so move those folders with it.
 
 ## Services
 
-Everything is in `docker-compose.yml` (Compose project `takushiserver`). Ports are host ports;
-services with none are only reachable by the other containers.
+Everything is in `docker-compose.yml` (Compose project `takushiserver`). Container names are in
+parentheses where they differ. Ports are host ports; services with none are only reachable by the
+other containers. Mounts show host path → container path, using the `.env` defaults; relative paths
+resolve from this folder.
 
-| Service | Container | What it does | Host ports |
+| Service | What it does | Host ports | Mounts |
 |---|---|---|---|
-| `immich-server` | `immich_server` | Photo and video library, web UI and API | 2283 (web) |
-| `immich-machine-learning` | `immich_machine_learning` | Face recognition and smart search for Immich | none |
-| `database` | `immich_postgres` | Immich's Postgres database | none |
-| `redis` | `immich_redis` | Immich's job queue (Valkey) | none |
-| `pihole` | `pihole` | DNS ad-blocking for the network | 53 tcp/udp (DNS), 80 and 443 (web UI) |
-| `forgejo` | `forgejo` | Self-hosted Git | 3300 (web), 2222 (Git over SSH) |
-| `tailscale` | `tailscale` | Remote access over the tailnet | none of its own; host networking makes every port above reachable as `ts` |
+| `immich-server` (`immich_server`) | Photo and video library, web UI and API | 2283 (web) | `~/Pictures/immich_library` → `/data` |
+| `immich-machine-learning` (`immich_machine_learning`) | Face recognition and smart search for Immich | none | volume `model-cache` → `/cache` |
+| `database` (`immich_postgres`) | Immich's Postgres database | none | `./postgres` → `/var/lib/postgresql/data` |
+| `redis` (`immich_redis`) | Immich's job queue (Valkey) | none | none |
+| `pihole` | DNS ad-blocking for the network | 53 tcp/udp (DNS), 80 and 443 (web UI) | `./etc-pihole` → `/etc/pihole` |
+| `forgejo` | Self-hosted Git | 3300 (web), 2222 (Git over SSH) | `./forgejo` → `/data` |
+| `tailscale` | Remote access over the tailnet | none of its own; host networking makes every port above reachable as `ts` | `./tailscale` → `/var/lib/tailscale` |
 
 Port 3000 is taken by Grafana, which runs outside this compose file.
-
-## Data on the host
-
-Back these up. Paths come from `.env`; the defaults are shown. Relative paths resolve from this folder.
-
-| Service | Host path | Mounted at | Holds |
-|---|---|---|---|
-| `immich-server` | `UPLOAD_LOCATION` (`~/Pictures/immich_library`) | `/data` | Photos, videos, thumbnails |
-| `database` | `DB_DATA_LOCATION` (`./postgres`) | `/var/lib/postgresql/data` | Immich's database (albums, faces, users) |
-| `immich-machine-learning` | Docker volume `takushiserver_model-cache` | `/cache` | Downloaded models; safe to lose, re-downloads |
-| `pihole` | `./etc-pihole` | `/etc/pihole` | Pi-hole settings, blocklists, query log |
-| `forgejo` | `FORGEJO_DATA_LOCATION` (`./forgejo`) | `/data` | Repos, SQLite database, config |
-| `tailscale` | `TAILSCALE_DATA_LOCATION` (`./tailscale`) | `/var/lib/tailscale` | Node identity and login; keep it |
-
-Read-only `/etc/localtime` and `/etc/timezone` mounts (for the clock's time zone) are left out.
-`tailscale` also uses the host's `/dev/net/tun` device.
 
 # immich
 The version is pinned with `IMMICH_VERSION` in `.env` (v3.3.5) to avoid breaking upgrades. Raise it
