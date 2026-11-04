@@ -1,15 +1,14 @@
 # takushiserver
 
 Home server (`ts` on the tailnet, 192.168.130.52). Run Compose from this folder; untracked
-data folders (`etc-pihole/`, `forgejo/`, `tailscale/`, and Immich's database `postgres/`) and `.env`
-files live next to the compose file. Relative paths in `.env` and `immich/.env` (e.g.
-`DB_DATA_LOCATION=./postgres`) resolve from this folder, so move those folders with it.
+data folders (`etc-pihole/`, `forgejo/`, `tailscale/`, and Immich's database `postgres/`) and the
+`.env` file live next to the compose file. Copy `example.env` to `.env` and fill it in; it holds the
+settings for every service. Relative paths in it (e.g. `DB_DATA_LOCATION=./postgres`) resolve from
+this folder, so move those folders with it.
 
 # immich
-- set host environmetn varaible to v2.3.1 to avoid breaking
-```
-export IMMICH_VERSION=v2.3.1
-```
+The version is pinned with `IMMICH_VERSION` in `.env` (v2.3.1) to avoid breaking upgrades. Raise it
+deliberately after reading the release notes, then `docker compose pull && docker compose up -d`.
 
 # pihole
 ubuntu consdierations regarding port 53: https://docs.pi-hole.net/docker/tips-and-tricks/
