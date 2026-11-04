@@ -23,8 +23,6 @@ resolve from this folder.
 | `forgejo` | Self-hosted Git | 3300 (web), 2222 (Git over SSH) | `./forgejo` → `/data` |
 | `tailscale` | Remote access over the tailnet | none of its own; host networking makes every port above reachable as `ts` | `./tailscale` → `/var/lib/tailscale` |
 
-Port 3000 is taken by Grafana, which runs outside this compose file.
-
 # immich
 The version is pinned with `IMMICH_VERSION` in `.env` (v3.3.5) to avoid breaking upgrades. Raise it
 deliberately after reading the release notes, then `docker compose pull && docker compose up -d`.
