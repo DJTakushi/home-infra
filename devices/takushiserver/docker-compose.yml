@@ -171,7 +171,8 @@ services:
       # Read by homepage/*.yaml as {{HOMEPAGE_VAR_...}}.
       HOMEPAGE_VAR_HOST: ${HOMEPAGE_HOST:-ts}
       HOMEPAGE_VAR_IMMICH_KEY: ${HOMEPAGE_IMMICH_KEY:-}
-      HOMEPAGE_VAR_PIHOLE_KEY: ${HOMEPAGE_PIHOLE_KEY:-}
+      # Pi-hole v6 accepts its web password as the API key, so no separate key to create.
+      HOMEPAGE_VAR_PIHOLE_KEY: ${PIHOLE_PASSWORD}
     volumes:
       - ./homepage:/app/config
     ports:

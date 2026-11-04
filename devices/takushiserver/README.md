@@ -149,11 +149,11 @@ reloads it on save, so edit, commit, and refresh the page.
 - `settings.yaml`, `widgets.yaml`: title, layout, and the CPU, memory and disk bar at the top.
 - `docker.yaml`, `kubernetes.yaml`: unused defaults; Homepage recreates them if they're missing.
 
-first start - the widget keys go in `.env`, then `docker compose up homepage -d`
+first start - the Immich key goes in `.env`, then `docker compose up homepage -d`
 - `HOMEPAGE_IMMICH_KEY`: Immich -> Account Settings -> API Keys, with the `server.statistics` permission
-- `HOMEPAGE_PIHOLE_KEY`: Pi-hole -> Settings -> Web interface / API -> app password (or the web password)
+- Pi-hole needs nothing: the widget reuses `PIHOLE_PASSWORD`. The Immich key is stored in Immich's database, so restoring `postgres/` from backup keeps it valid.
 
-Without a key that card shows "API Error"; the rest of the page still works.
+Without the key the Immich card shows "API Error"; the rest of the page still works.
 
 If the page says the host isn't allowed, add the exact `host:port` you opened it at to
 `HOMEPAGE_ALLOWED_HOSTS` in `.env` (default `ts:3001,192.168.130.52:3001`). There's no login: anyone on
