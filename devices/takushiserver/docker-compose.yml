@@ -158,5 +158,25 @@ services:
       - ${TAILSCALE_DATA_LOCATION:-./tailscale}:/var/lib/tailscale
     restart: always
 
+  homepage:
+    # Front page for this server: a card per service with live status, and links to each one's
+    # README section. Config is tracked in ./homepage. See README "homepage".
+    container_name: homepage
+    image: ghcr.io/gethomepage/homepage:v2.7.0
+    environment:
+      # Required: the exact host:port the page is opened at, comma-separated.
+      HOMEPAGE_ALLOWED_HOSTS: ${HOMEPAGE_ALLOWED_HOSTS:-ts:3001,192.168.130.52:3001}
+      PUID: ${HOMEPAGE_UID:-1000}
+      PGID: ${HOMEPAGE_GID:-1000}
+      # Read by homepage/*.yaml as {{HOMEPAGE_VAR_...}}.
+      HOMEPAGE_VAR_HOST: ${HOMEPAGE_HOST:-ts}
+      HOMEPAGE_VAR_IMMICH_KEY: ${HOMEPAGE_IMMICH_KEY:-}
+      HOMEPAGE_VAR_PIHOLE_KEY: ${HOMEPAGE_PIHOLE_KEY:-}
+    volumes:
+      - ./homepage:/app/config
+    ports:
+      - "3001:3000"
+    restart: always
+
 volumes:
   model-cache:

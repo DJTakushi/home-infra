@@ -22,6 +22,7 @@ resolve from this folder.
 | `pihole` | DNS ad-blocking for the network | 53 tcp/udp (DNS), 80 and 443 (web UI) | `./etc-pihole` → `/etc/pihole` |
 | `forgejo` | Self-hosted Git | 3300 (web), 2222 (Git over SSH) | `./forgejo` → `/data` |
 | `tailscale` | Remote access over the tailnet | none of its own; host networking makes every port above reachable as `ts` | `./tailscale` → `/var/lib/tailscale` |
+| `homepage` | Front page: a card per service with live status, and links to these docs | 3001 (web) | `./homepage` → `/app/config` (tracked config) |
 
 # immich
 The version is pinned with `IMMICH_VERSION` in `.env` (v3.3.5) to avoid breaking upgrades. Raise it
@@ -135,4 +136,31 @@ the Docker daemon itself is broken you need to be on the LAN to fix it.
 upgrade
 ```
 docker compose pull tailscale && docker compose up tailscale -d
+```
+
+# homepage
+Front page for this server at `http://ts:3001`, built with [Homepage](https://gethomepage.dev). Each service
+has a card with a status dot (and, for Immich and Pi-hole, live numbers), and the Docs row links to
+the sections of this README. Its config is the YAML in `homepage/` and is tracked in git; Homepage
+reloads it on save, so edit, commit, and refresh the page.
+
+- `services.yaml`: the cards. `href` is opened by your browser, so it uses the server's name (`HOMEPAGE_HOST`, default `ts`); widget and `siteMonitor` URLs are fetched by the container, so they use compose service names like `http://immich-server:2283`.
+- `bookmarks.yaml`: the Docs links. Add one when a service gets a README section.
+- `settings.yaml`, `widgets.yaml`: title, layout, and the CPU, memory and disk bar at the top.
+- `docker.yaml`, `kubernetes.yaml`: unused defaults; Homepage recreates them if they're missing.
+
+first start - the widget keys go in `.env`, then `docker compose up homepage -d`
+- `HOMEPAGE_IMMICH_KEY`: Immich -> Account Settings -> API Keys, with the `server.statistics` permission
+- `HOMEPAGE_PIHOLE_KEY`: Pi-hole -> Settings -> Web interface / API -> app password (or the web password)
+
+Without a key that card shows "API Error"; the rest of the page still works.
+
+If the page says the host isn't allowed, add the exact `host:port` you opened it at to
+`HOMEPAGE_ALLOWED_HOSTS` in `.env` (default `ts:3001,192.168.130.52:3001`). There's no login: anyone on
+the LAN or tailnet can see it, which is fine since it only shows counts and links. Homepage can add a
+password (`HOMEPAGE_AUTH_ENABLED`) if that changes.
+
+upgrade - bump the image tag in `docker-compose.yml` after reading the release notes, then
+```
+docker compose pull homepage && docker compose up homepage -d
 ```

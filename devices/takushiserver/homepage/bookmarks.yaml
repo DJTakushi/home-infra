@@ -1,0 +1,24 @@
+# Links to each service's section of the server README on Forgejo, so the docs live in one place.
+# Bookmarks: https://gethomepage.dev/configs/bookmarks/
+
+- Docs:
+    - Server overview:
+        - icon: mdi-server
+          href: http://{{HOMEPAGE_VAR_HOST}}:3300/danny/home-infra/src/branch/main/devices/takushiserver/README.md
+          description: Services, ports, mounts
+    - Immich:
+        - icon: immich.png
+          href: http://{{HOMEPAGE_VAR_HOST}}:3300/danny/home-infra/src/branch/main/devices/takushiserver/README.md#immich
+          description: Version pinning, upgrades
+    - Pi-hole:
+        - icon: pi-hole.png
+          href: http://{{HOMEPAGE_VAR_HOST}}:3300/danny/home-infra/src/branch/main/devices/takushiserver/README.md#pihole
+          description: Port 53 setup, DNS checks
+    - Forgejo:
+        - icon: forgejo.png
+          href: http://{{HOMEPAGE_VAR_HOST}}:3300/danny/home-infra/src/branch/main/devices/takushiserver/README.md#forgejo
+          description: Setup, backup, upgrades
+    - Tailscale:
+        - icon: tailscale.png
+          href: http://{{HOMEPAGE_VAR_HOST}}:3300/danny/home-infra/src/branch/main/devices/takushiserver/README.md#tailscale
+          description: Joining, key expiry, DNS

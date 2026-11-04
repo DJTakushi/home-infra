@@ -1,0 +1,37 @@
+# Service cards: https://gethomepage.dev/configs/services/
+# {{HOMEPAGE_VAR_*}} values come from .env (see the homepage service in docker-compose.yml).
+# href is what your browser opens, so it uses the server's name; widget and siteMonitor URLs are
+# fetched by the homepage container itself, so they use the compose service names.
+
+- Apps:
+    - Immich:
+        icon: immich.png
+        href: http://{{HOMEPAGE_VAR_HOST}}:2283
+        description: Photo and video library
+        siteMonitor: http://immich-server:2283
+        widget:
+          type: immich
+          url: http://immich-server:2283
+          key: "{{HOMEPAGE_VAR_IMMICH_KEY}}"
+          version: 2
+    - Forgejo:
+        icon: forgejo.png
+        href: http://{{HOMEPAGE_VAR_HOST}}:3300
+        description: Self-hosted Git (SSH on port 2222)
+        siteMonitor: http://forgejo:3000
+
+- Network:
+    - Pi-hole:
+        icon: pi-hole.png
+        href: http://{{HOMEPAGE_VAR_HOST}}/admin
+        description: DNS ad-blocking for the network
+        siteMonitor: http://pihole/admin
+        widget:
+          type: pihole
+          url: http://pihole
+          version: 6
+          key: "{{HOMEPAGE_VAR_PIHOLE_KEY}}"
+    - Tailscale:
+        icon: tailscale.png
+        href: https://login.tailscale.com/admin/machines
+        description: Remote access; this server is "ts" on the tailnet

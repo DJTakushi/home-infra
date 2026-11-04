@@ -1,0 +1,10 @@
+# Header widgets: https://gethomepage.dev/widgets/info/
+- resources:
+    cpu: true
+    memory: true
+    disk: /
+- datetime:
+    text_size: md
+    format:
+      dateStyle: medium
+      timeStyle: short
