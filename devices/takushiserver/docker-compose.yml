@@ -1,3 +1,7 @@
+# Project name is the machine, so containers, networks and volumes read takushiserver_* on the
+# host. Pinned here so the folder this file lives in doesn't decide it.
+name: takushiserver
+
 services:
   immich-server:
     container_name: immich_server
