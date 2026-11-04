@@ -6,6 +6,23 @@ data folders (`etc-pihole/`, `forgejo/`, `tailscale/`, and Immich's database `po
 settings for every service. Relative paths in it (e.g. `DB_DATA_LOCATION=./postgres`) resolve from
 this folder, so move those folders with it.
 
+## Services
+
+Everything is in `docker-compose.yml` (Compose project `takushiserver`). Container names are in
+parentheses where they differ. Ports are host ports; services with none are only reachable by the
+other containers. Mounts show host path → container path, using the `.env` defaults; relative paths
+resolve from this folder.
+
+| Service | What it does | Host ports | Mounts |
+|---|---|---|---|
+| `immich-server` (`immich_server`) | Photo and video library, web UI and API | 2283 (web) | `~/Pictures/immich_library` → `/data` |
+| `immich-machine-learning` (`immich_machine_learning`) | Face recognition and smart search for Immich | none | volume `model-cache` → `/cache` |
+| `database` (`immich_postgres`) | Immich's Postgres database | none | `./postgres` → `/var/lib/postgresql/data` |
+| `redis` (`immich_redis`) | Immich's job queue (Valkey) | none | none |
+| `pihole` | DNS ad-blocking for the network | 53 tcp/udp (DNS), 80 and 443 (web UI) | `./etc-pihole` → `/etc/pihole` |
+| `forgejo` | Self-hosted Git | 3300 (web), 2222 (Git over SSH) | `./forgejo` → `/data` |
+| `tailscale` | Remote access over the tailnet | none of its own; host networking makes every port above reachable as `ts` | `./tailscale` → `/var/lib/tailscale` |
+
 # immich
 The version is pinned with `IMMICH_VERSION` in `.env` (v3.3.5) to avoid breaking upgrades. Raise it
 deliberately after reading the release notes, then `docker compose pull && docker compose up -d`.
