@@ -19,6 +19,11 @@
         href: http://{{HOMEPAGE_VAR_HOST}}:3300
         description: Self-hosted Git (SSH on port 2222)
         siteMonitor: http://forgejo:3000
+    - Obsidian sync:
+        icon: obsidian.png
+        description: CouchDB for the LiveSync plugin; HTTPS on the tailnet at port 6984
+        # 401 without a login still means it's up (Homepage counts anything up to 403 as up).
+        siteMonitor: http://couchdb:5984/_up
 
 - Network:
     - Pi-hole:

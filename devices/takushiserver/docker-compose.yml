@@ -184,5 +184,28 @@ services:
       - "3001:3000"
     restart: always
 
+  couchdb:
+    # Sync server for Obsidian (Self-hosted LiveSync plugin on each device). Bound to localhost
+    # only: devices reach it over HTTPS via Tailscale Serve (port 6984), which Obsidian on phones
+    # requires. Settings in ./couchdb-config. See README "obsidian sync".
+    container_name: couchdb
+    image: couchdb:3.5
+    environment:
+      # Admin login the plugin signs in with, from .env. Without a password CouchDB refuses to start
+      # (only this container; the rest of the stack is unaffected).
+      COUCHDB_USER: ${COUCHDB_USER:-obsidian}
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD:-}
+    volumes:
+      # Synced vault data (end-to-end encrypted if the plugin's encryption is on). Back it up.
+      - ${COUCHDB_DATA_LOCATION:-./couchdb}:/opt/couchdb/data
+      - ./couchdb-config:/config:ro
+    # Copies ./couchdb-config/*.ini into CouchDB's local.d on every start, then runs the image's
+    # usual entrypoint. Mounting them into local.d directly fails: the image chowns everything
+    # under /opt/couchdb at startup and exits on a read-only file.
+    entrypoint: ["tini", "--", "sh", "-c", "cp /config/*.ini /opt/couchdb/etc/local.d/ && exec /docker-entrypoint.sh /opt/couchdb/bin/couchdb"]
+    ports:
+      - "127.0.0.1:5984:5984"
+    restart: always
+
 volumes:
   model-cache:
