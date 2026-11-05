@@ -4,3 +4,4 @@ forgejo/
 tailscale/
 postgres/
 library/
+couchdb/

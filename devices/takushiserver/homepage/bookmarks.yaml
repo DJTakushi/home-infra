@@ -22,3 +22,7 @@
         - icon: tailscale.png
           href: http://{{HOMEPAGE_VAR_HOST}}:3300/danny/home-infra/src/branch/main/devices/takushiserver/README.md#tailscale
           description: Joining, key expiry, DNS
+    - Obsidian sync:
+        - icon: obsidian.png
+          href: http://{{HOMEPAGE_VAR_HOST}}:3300/danny/home-infra/src/branch/main/devices/takushiserver/README.md#obsidian-sync
+          description: CouchDB, phone and desktop setup

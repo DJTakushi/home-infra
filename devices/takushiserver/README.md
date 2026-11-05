@@ -1,7 +1,7 @@
 # takushiserver
 
 Home server (`ts` on the tailnet, 192.168.130.52). Run Compose from this folder; untracked
-data folders (`etc-pihole/`, `forgejo/`, `tailscale/`, and Immich's database `postgres/`) and the
+data folders (`etc-pihole/`, `forgejo/`, `tailscale/`, `couchdb/`, and Immich's database `postgres/`) and the
 `.env` file live next to the compose file. Copy `example.env` to `.env` and fill it in; it holds the
 settings for every service. Relative paths in it (e.g. `DB_DATA_LOCATION=./postgres`) resolve from
 this folder, so move those folders with it.
@@ -21,8 +21,9 @@ resolve from this folder.
 | `redis` (`immich_redis`) | Immich's job queue (Valkey) | none | none |
 | `pihole` | DNS ad-blocking for the network | 53 tcp/udp (DNS), 80 and 443 (web UI) | `./etc-pihole` → `/etc/pihole` |
 | `forgejo` | Self-hosted Git | 3300 (web), 2222 (Git over SSH) | `./forgejo` → `/data` |
-| `tailscale` | Remote access over the tailnet, and HTTPS for Homepage, Immich and Forgejo | none of its own; host networking makes every port above reachable as `ts`. HTTPS on the tailnet: 443 (Homepage), 2443 (Immich), 3443 (Forgejo) | `./tailscale` → `/var/lib/tailscale`, `./tailscale-serve` → `/config` (tracked config) |
+| `tailscale` | Remote access over the tailnet, and HTTPS for Homepage, Immich, Forgejo and CouchDB | none of its own; host networking makes every port above reachable as `ts`. HTTPS on the tailnet: 443 (Homepage), 2443 (Immich), 3443 (Forgejo), 6984 (CouchDB) | `./tailscale` → `/var/lib/tailscale`, `./tailscale-serve` → `/config` (tracked config) |
 | `homepage` | Front page: a card per service with live status, and links to these docs | 3001 (web) | `./homepage` → `/app/config` (tracked config) |
+| `couchdb` | Sync server for Obsidian (Self-hosted LiveSync plugin) | 5984 on localhost only; devices use HTTPS 6984 on the tailnet | `./couchdb` → `/opt/couchdb/data`, `./couchdb-config` → `/config` (tracked config) |
 
 # immich
 The version is pinned with `IMMICH_VERSION` in `.env` (v3.3.5) to avoid breaking upgrades. Raise it
@@ -133,7 +134,7 @@ Remove any router port forwards to this server once the tailnet works - nothing 
 caveat: remote access now depends on Docker. `restart: always` covers crashes and reboots, but if
 the Docker daemon itself is broken you need to be on the LAN to fix it.
 
-HTTPS - Tailscale Serve gives Homepage, Immich and Forgejo real certificates at
+HTTPS - Tailscale Serve gives Homepage, Immich, Forgejo and CouchDB real certificates at
 `https://ts.<tailnet>.ts.net`, trusted by phones and browsers with no setup. It's tailnet only: the
 Tailscale app must be on, even at home. The plain `http://` ports keep working on the LAN.
 
@@ -142,6 +143,7 @@ Tailscale app must be on, even at home. The plain `http://` ports keep working o
 | Homepage | `https://ts.<tailnet>.ts.net` | `http://127.0.0.1:3001` |
 | Immich | `https://ts.<tailnet>.ts.net:2443` | `http://127.0.0.1:2283` |
 | Forgejo | `https://ts.<tailnet>.ts.net:3443` | `http://127.0.0.1:3300` |
+| CouchDB (Obsidian sync) | `https://ts.<tailnet>.ts.net:6984` | `http://127.0.0.1:5984` |
 
 The mapping is `tailscale-serve/serve.json` (`TS_SERVE_CONFIG`); the container fills in
 `${TS_CERT_DOMAIN}` and reapplies the file whenever it changes, so edit, commit, pull - no restart.
@@ -196,4 +198,54 @@ password (`HOMEPAGE_AUTH_ENABLED`) if that changes.
 upgrade - bump the image tag in `docker-compose.yml` after reading the release notes, then
 ```
 docker compose pull homepage && docker compose up homepage -d
+```
+
+# obsidian sync
+Syncs Obsidian vaults between phone, laptop and desktop through CouchDB, using the community plugin
+[Self-hosted LiveSync](https://github.com/vrtmrz/obsidian-livesync). Each device keeps a full local
+copy of the vault and works offline; changes sync within seconds when it's online. CouchDB only
+listens on the server itself (127.0.0.1:5984). Devices reach it at `https://ts.<tailnet>.ts.net:6984`
+through Tailscale Serve, which supplies the HTTPS that Obsidian on phones requires, so the Tailscale
+app must be on, even at home.
+
+Settings from the plugin's setup guide (single node, CORS for the Obsidian apps, large documents,
+login required) are in `couchdb-config/livesync.ini`. They're copied in at every start, so after
+editing it, `docker compose restart couchdb`.
+
+first start
+1. set a long random `COUCHDB_PASSWORD` in `.env` (`openssl rand -base64 24`); `COUCHDB_USER`
+   defaults to `obsidian`. Without a password CouchDB stays in a restart loop and says why in
+   `docker logs couchdb`.
+2. start it, then check it from the server
+```
+mkdir -p couchdb && docker compose up couchdb -d
+curl -u obsidian:<password> http://127.0.0.1:5984/_up
+```
+3. the HTTPS address needs Tailscale Serve set up (see tailscale "HTTPS"); `tailscale serve status`
+   should list port 6984.
+
+first device (desktop)
+1. Obsidian -> Settings -> Community plugins -> Browse -> **Self-hosted LiveSync** -> Install, Enable
+2. its setup wizard -> manual setup with CouchDB: URI `https://ts.<tailnet>.ts.net:6984`, the user
+   and password from `.env`, any database name (e.g. `vault`). Run its check, which fixes
+   anything the server is missing.
+3. turn on **end-to-end encryption** and pick a passphrase. CouchDB then only stores encrypted data,
+   and the passphrase is needed on every device: keep it in your password manager.
+4. sync mode **LiveSync**, then let it upload the vault.
+5. plugin settings -> copy the **setup URI** (it asks for a separate passphrase to protect it).
+
+other devices (phone): install Tailscale and Obsidian, create an empty vault, install the plugin, and
+choose "Use setup URI": paste the URI from step 5 and its passphrase. Let it download the vault
+before editing anything.
+
+notes
+- anything in the vault syncs, including folders linked into it (a 27 MB mirror of someone else's
+  notes would land on the phone too). The plugin's selective-sync settings can skip a folder.
+- every device holds the whole vault, but back up `./couchdb` too; restoring it brings back a sync
+  server every device can reconnect to. Stop the container for a consistent copy.
+- the CouchDB web admin (Fauxton) is at `https://ts.<tailnet>.ts.net:6984/_utils`.
+
+upgrade - `couchdb:3.5` follows 3.5.x patch releases; move to a new minor version deliberately
+```
+docker compose pull couchdb && docker compose up couchdb -d
 ```
