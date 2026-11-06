@@ -1,0 +1,10 @@
+[Unit]
+Description=Verify takushiserver backups
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart="@BACKUP_SH@" check
+Nice=10
+IOSchedulingClass=idle

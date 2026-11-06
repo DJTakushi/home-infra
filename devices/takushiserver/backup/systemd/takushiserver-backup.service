@@ -1,0 +1,10 @@
+[Unit]
+Description=Back up takushiserver with restic
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart="@BACKUP_SH@" run
+Nice=10
+IOSchedulingClass=idle

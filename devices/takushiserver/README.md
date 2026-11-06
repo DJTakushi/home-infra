@@ -6,6 +6,8 @@ data folders (`etc-pihole/`, `forgejo/`, `tailscale/`, `couchdb/`, and Immich's 
 settings for every service. Relative paths in it (e.g. `DB_DATA_LOCATION=./postgres`) resolve from
 this folder, so move those folders with it.
 
+Backups run nightly from `backup/` (restic, systemd timers): see [BACKUPS.md](../../BACKUPS.md).
+
 ## Services
 
 Everything is in `docker-compose.yml` (Compose project `takushiserver`). Container names are in

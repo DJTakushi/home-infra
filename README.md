@@ -8,6 +8,8 @@ devices/
   takushiserver/   # home server: Immich, Pi-hole, Forgejo, Tailscale
 ```
 
+Backups, what's in them and how to restore: [BACKUPS.md](BACKUPS.md).
+
 Add new machines (NAS, desktop) as `devices/<hostname>/` with their own README. Notes that span
 machines (network layout, what data lives where, backups) go at the top level.
 
